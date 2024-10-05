@@ -1,19 +1,41 @@
 # Dockerfile
-# Base image for Node.js application
-FROM node:14
 
-# Set working directory inside container
+# Base image for Node.js application
+# Use a smaller base image for Node.js 14
+FROM node:14-alpine
+
+# Accept build-time arguments
+ARG JWT_SECRET
+ARG DATABASE_NAME
+ARG DATABASE_USER
+ARG DATABASE_PASSWORD
+ARG DATABASE_HOST
+ARG AesKey
+ARG IV
+
+# Set the environment variables for runtime
+ENV JWT_SECRET=$JWT_SECRET
+ENV DATABASE_NAME=$DATABASE_NAME
+ENV DATABASE_USER=$DATABASE_USER
+ENV DATABASE_PASSWORD=$DATABASE_PASSWORD
+ENV DATABASE_HOST=$DATABASE_HOST
+ENV AesKey=$AesKey
+ENV IV=$IV
+
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy package.json and install dependencies
+# Copy only package.json and package-lock.json for dependencies installation
 COPY package*.json ./
+
+# Install dependencies
 RUN npm install
 
-# Copy rest of the application code
+# Copy the rest of the application code
 COPY . .
 
-# Expose the port that your app will run on
+# Expose the port your application runs on (if applicable)
 EXPOSE 3000
 
-# Start the application
+# Define the command to run your application
 CMD ["npm", "start"]
