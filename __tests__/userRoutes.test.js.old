@@ -1,0 +1,262 @@
+// // Import necessary libraries and modules
+// const request = require("supertest"); // For HTTP request testing
+// const Hapi = require("@hapi/hapi"); // Hapi server instance
+// const { sequelize } = require("../dbConfig"); // Sequelize instance
+// const User = require("../models/user"); // User model
+// const routes = require("../routes/userRoutes"); // Routes to test
+// const Jwt = require("jsonwebtoken"); // JWT for testing
+
+// // Mock database connection
+// jest.mock("../models/user.js");
+
+// // Initialize Hapi server for testing
+// let server;
+
+// // Before all tests: set up the server
+// beforeAll(async () => {
+//   server = Hapi.server({
+//     port: 4000,
+//     host: "localhost",
+//   });
+
+//   // Register JWT auth strategy for Hapi
+//   await server.register(require("hapi-auth-jwt2"));
+//   server.auth.strategy("jwt", "jwt", {
+//     key: process.env.JWT_SECRET || "your_jwt_secret_key",
+//     validate: async (decoded, request, h) => ({ isValid: true }),
+//     verifyOptions: { algorithms: ["HS256"] },
+//   });
+//   server.auth.default("jwt"); // Set default authentication strategy
+
+//   // Register routes for the server
+//   server.route(routes);
+// });
+
+// // After all tests: close the server and reset mocks
+// afterAll(async () => {
+//   await server.stop();
+//   jest.clearAllMocks();
+// });
+
+// // Describe test cases for User Routes
+// describe("User Routes API", () => {
+//   // Mock token for authorization
+//   const mockToken = Jwt.sign(
+//     {
+//       email: "bk123@gmail.com",
+
+//       role: "admin",
+//       scopes: ["create:user"],
+//     },
+//     process.env.JWT_SECRET || "your_jwt_secret_key",
+//     { algorithm: "HS256" }
+//   );
+
+//   // Sample user data
+//   const sampleUserData = {
+//     firstName: "Rahul",
+//     lastName: "1234",
+//     email: "rahul1@gmail.com",
+//     role: "user",
+//     password: "cmFodWxAMTIzNDU=",
+//     aadhar: "AAADAA233232",
+//     pan: "268990000000",
+//     mobile: "7977401967",
+//   };
+
+//   // Test: Create user with valid payload
+//   test("POST /createusers - should create user with valid payload", async () => {
+//     // Mock the user creation process
+//     User.create.mockResolvedValue(sampleUserData);
+
+//     const response = await request(server.listener)
+//       .post("/createusers")
+//       .set("Authorization", `Bearer ${mockToken}`)
+//       .send(sampleUserData);
+
+//     expect(response.status).toBe(201);
+//     // expect(response.body).toMatchObject({
+//     //   firstName: 'Mv',
+//     //   lastName: '1234',
+//     //   email: 'bk123@gmail.com',
+//     //   role: 'admin',
+//     // });
+//   });
+
+//   // Test: Create user with missing required fields
+//   //   test("POST /createusers - should return 400 for missing required fields", async () => {
+//   //     const invalidUserData = {
+//   //       lastName: "1234",
+//   //       email: "bk123@gmail.com",
+//   //     };
+
+//   //     const response = await request(server.listener)
+//   //       .post("/createusers")
+//   //       .set("Authorization", `Bearer ${mockToken}`)
+//   //       .send(invalidUserData);
+
+//   //     expect(response.status).toBe(400); // Bad Request
+//   //     expect(response.body.message).toContain('"firstName" is required');
+//   //   });
+
+//   //   // Test: Create user with insufficient scopes
+//   //   test("POST /createusers - should return 403 for insufficient scopes", async () => {
+//   //     const invalidToken = Jwt.sign(
+//   //       { userId: "12345", role: "user", scopes: [] }, // No "create:user" scope
+//   //       process.env.JWT_SECRET || "your_jwt_secret_key",
+//   //       { algorithm: "HS256" }
+//   //     );
+
+//   //     const response = await request(server.listener)
+//   //       .post("/createusers")
+//   //       .set("Authorization", `Bearer ${invalidToken}`)
+//   //       .send(sampleUserData);
+
+//   //     expect(response.status).toBe(403); // Forbidden
+//   //     expect(response.body.message).toBe("Insufficient scope");
+//   //   });
+
+//   //   // Test: Server error while creating user
+//   //   test("POST /createusers - should handle server error gracefully", async () => {
+//   //     // Mock rejection of user creation
+//   //     User.create.mockRejectedValue(new Error("Database error"));
+
+//   //     const response = await request(server.listener)
+//   //       .post("/createusers")
+//   //       .set("Authorization", `Bearer ${mockToken}`)
+//   //       .send(sampleUserData);
+
+//   //     expect(response.status).toBe(500); // Internal Server Error
+//   //     expect(response.body.message).toBe("An internal server error occurred");
+//   //   });
+// });
+
+// Import necessary libraries and modules
+const request = require("supertest"); // For HTTP request testing
+const Hapi = require("@hapi/hapi"); // Hapi server instance
+const Jwt = require("jsonwebtoken"); // JWT for testing
+const User = require("../models/user"); // Mocked User model
+const UserDetail = require("../models/userDetail");
+
+// Mock the Sequelize instance in dbConfig to avoid actual database connection
+
+// jest.mock("../dbConfig.js", () => ({
+//   sequelize: {
+//     authenticate: jest.fn().mockResolvedValue("Mock Database Connected"),
+//     close: jest.fn().mockResolvedValue("Mock Database Connection Closed"),
+//   },
+// }));
+jest.mock("sequelize", () => {
+  const Sequelize = jest.requireActual("sequelize");
+  return {
+    ...Sequelize,
+    DataTypes: Sequelize.DataTypes,
+  };
+});
+// Mock database model methods (User, UserDetail, etc.)
+jest.mock("../models/user.js");
+jest.mock("../models/userDetail.js");
+// Initialize Hapi server for testing
+let server;
+
+// Before all tests: set up the server
+beforeAll(async () => {
+  server = Hapi.server({
+    port: 4000,
+    host: "localhost",
+  });
+
+  // Register JWT auth strategy for Hapi
+  await server.register(require("hapi-auth-jwt2"));
+  server.auth.strategy("jwt", "jwt", {
+    key: process.env.JWT_SECRET || "your_jwt_secret_key",
+    validate: async (decoded, request, h) => ({
+      isValid: true,
+      credentials: {
+        email: "bk123@gmail.com",
+        role: "admin",
+        scopes: ["create:user"],
+      },
+    }),
+    verifyOptions: { algorithms: ["HS256"] },
+  });
+  server.auth.default("jwt"); // Set default authentication strategy
+
+  // Register routes for the server
+  const routes = require("../routes/userRoutes"); // Import your routes
+  console.log("User Routes Configuration:", routes);
+
+  server.route(routes);
+
+  await server.start();
+  console.log(`Server running on ${server.info.uri}`);
+});
+
+// After all tests: close the server and reset mocks
+afterAll(async () => {
+  await server.stop();
+  jest.clearAllMocks();
+});
+
+// Describe test cases for User Routes
+describe("User Routes API", () => {
+  // Mock token for authorization
+  const mockToken = Jwt.sign(
+    {
+      email: "bk123@gmail.com",
+      role: "admin",
+      scopes: ["create:user"],
+    },
+    process.env.JWT_SECRET || "your_jwt_secret_key",
+    { algorithm: "HS256" }
+  );
+
+  // Sample user data
+  const sampleUserData = {
+    firstName: "Rahul",
+    lastName: "1234",
+    email: "rahul1@gmail.com",
+    role: "user",
+    password: "cmFodWxAMTIzNDU=", // base64 encoded password
+    aadhar: "AAADAA233232",
+    pan: "268990000000",
+    mobile: "7977401967",
+  };
+
+  // Test: Create user with valid payload
+  test("POST /createusers - should create user with valid payload", async () => {
+    // Mock the user creation process
+    User.findOne.mockResolvedValue(null);
+    UserDetail.findOne.mockResolvedValue(null);
+
+    // Mock the user create response with dynamic fields
+    User.create.mockResolvedValue({ id: 1, ...sampleUserData });
+
+    const response = await request(server.listener)
+      .post("/createusers")
+      .set("Authorization", `Bearer ${mockToken}`)
+      .send(sampleUserData);
+
+    expect(response.status).toBe(201);
+
+    expect(User.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        firstName: sampleUserData.firstName,
+        lastName: sampleUserData.lastName,
+        email: sampleUserData.email,
+        role: sampleUserData.role,
+        password: expect.any(String), // Check if it is any string (hashed)
+      })
+    );
+
+    expect(UserDetail.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        aadhar: expect.stringContaining(sampleUserData.aadhar), // Check if it contains the expected aadhar
+        pan: expect.stringContaining(sampleUserData.pan), // Check if it contains the expected pan
+        mobile: sampleUserData.mobile, // Expect the mobile number to match exactly
+      })
+    );
+  });
+
+  // Additional test cases here...
+});
