@@ -88,6 +88,7 @@ jobs:
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
+          heroku stack:set container --app node-service-01
           heroku container:login
           heroku container:push web --app node-service-01
           heroku container:release web --app node-service-01
