@@ -3,7 +3,8 @@ const crypto = require("crypto");
 const encryptionType = "aes-256-cbc";
 const encryptionEncoding = "base64";
 const bufferEncryption = "utf-8";
-const AesIV = new Buffer.alloc(8).toString("hex");
+const dotenv = require("dotenv");
+dotenv.config();
 const decryptdata = async (text) => {
   const buff = Buffer.from(text, encryptionEncoding);
   const key = Buffer.from(process.env.AesKey, bufferEncryption);

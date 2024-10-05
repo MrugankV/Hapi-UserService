@@ -1,4 +1,1 @@
-module.exports = {
-  AesKey: "338317A711A0DD6308791404BF010917",
-  IV: "1E2BEA3BAAC203DD",
-};
+module.exports = {};
