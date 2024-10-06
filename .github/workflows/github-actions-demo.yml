@@ -142,7 +142,7 @@ jobs:
           # Wait for MySQL to be ready
           echo "Waiting for MySQL to be ready..."
           for i in {1..30}; do  # Wait up to 30 seconds
-            if docker exec $(docker-compose ps -q db) mysqladmin --user=${{ secrets.DATABASE_USER }} --password=${{ secrets.DATABASE_PASSWORD }} ping --silent; then
+            if docker exec $(docker-compose ps -q db) mysqladmin --user=root --password=${{ secrets.DATABASE_PASSWORD }} ping --silent; then
               echo "MySQL is up and running!"
               break
             fi
