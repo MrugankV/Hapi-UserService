@@ -194,6 +194,8 @@ jobs:
             --build-arg DATABASE_HOST=db \
             --build-arg AesKey=${{ secrets.AesKey }} \
             --build-arg IV=${{ secrets.IV }} \
+            --build-arg mailer_username=${{ secrets.mailer_username }} \
+            --build-arg mailer_password=${{ secrets.mailer_password }} \
             -t noobslayer0069/node-service001:latest .
 
       # Step 11: Push Docker image to Docker Hub
