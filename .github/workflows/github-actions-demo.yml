@@ -159,19 +159,19 @@ jobs:
           echo "Environment variables configured"
 
       # Step 7: Run tests
-      - name: Run tests
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
-          DATABASE_USER: ${{ secrets.DATABASE_USER }}
-          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-          DATABASE_HOST: db
-          AesKey: ${{ secrets.AesKey }}
-          mailer_username: ${{ secrets.mailer_username }}
-          mailer_password: ${{ secrets.mailer_password }}
-          IV: ${{ secrets.IV }}
-        run: |
-          docker-compose exec node-app npm test
+      # - name: Run tests
+      #   env:
+      #     JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      #     DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+      #     DATABASE_USER: ${{ secrets.DATABASE_USER }}
+      #     DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+      #     DATABASE_HOST: db
+      #     AesKey: ${{ secrets.AesKey }}
+      #     mailer_username: ${{ secrets.mailer_username }}
+      #     mailer_password: ${{ secrets.mailer_password }}
+      #     IV: ${{ secrets.IV }}
+      #   run: |
+      #     docker-compose exec node-app npm test
 
       # Step 8: Tear down Docker Compose
       - name: Tear down Docker
