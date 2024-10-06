@@ -118,7 +118,13 @@ jobs:
         with:
           node-version: "20.14.0"
 
-      # Step 3: Build and run Docker containers
+      # Step 3: Install Docker Compose
+      - name: Set up Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+      # Step 4: Build and run Docker containers
       - name: Build and run Docker containers
         run: |
           docker-compose up -d --build
@@ -127,7 +133,7 @@ jobs:
             sleep 1
           done
 
-      # Step 4: Set up environment variables
+      # Step 5: Set up environment variables
       - name: Set up environment variables
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -142,7 +148,7 @@ jobs:
         run: |
           echo "Environment variables configured"
 
-      # Step 5: Run tests
+      # Step 6: Run tests
       - name: Run tests
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -157,16 +163,16 @@ jobs:
         run: |
           docker-compose exec node-app npm test
 
-      # Step 6: Tear down Docker Compose
+      # Step 7: Tear down Docker Compose
       - name: Tear down Docker
         run: |
           docker-compose down
 
-      # Step 7: Log in to Docker Hub
+      # Step 8: Log in to Docker Hub
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      # Step 8: Build Docker image with build arguments
+      # Step 9: Build Docker image with build arguments
       - name: Build Docker image
         working-directory: ./node-app # Point to the directory with your Dockerfile
         run: |
@@ -180,7 +186,7 @@ jobs:
             --build-arg IV=${{ secrets.IV }} \
             -t noobslayer0069/node-service001:latest .
 
-      # Step 9: Push Docker image to Docker Hub
+      # Step 10: Push Docker image to Docker Hub
       - name: Push Docker image
         run: docker push noobslayer0069/node-service001:latest
 
