@@ -139,23 +139,6 @@ jobs:
         run: |
           docker-compose up -d --build
 
-          # Wait for MySQL to be ready
-          echo "Waiting for MySQL to be ready..."
-          for i in {1..30}; do  # Wait up to 30 seconds
-            if docker exec $(docker-compose ps -q db) mysqladmin --user=root --password=${{ secrets.DATABASE_PASSWORD }} ping --silent; then
-              echo "MySQL is up and running!"
-              break
-            fi
-            echo "MySQL is not ready yet. Retrying in 1 second..."
-            sleep 1
-          done
-
-          # Check if MySQL is still not ready after waiting
-          if ! docker exec $(docker-compose ps -q db) mysqladmin --user=${{ secrets.DATABASE_USER }} --password=${{ secrets.DATABASE_PASSWORD }} ping --silent; then
-            echo "MySQL is still not reachable. Exiting."
-            exit 1
-          fi
-
       # Step 5: Check MySQL logs for debugging
       - name: Check MySQL logs
         run: docker-compose logs db
