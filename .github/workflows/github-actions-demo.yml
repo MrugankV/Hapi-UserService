@@ -184,7 +184,7 @@ jobs:
 
       # Step 10: Build Docker image with build arguments
       - name: Build Docker image
-        working-directory: ./node-app # Point to the directory with your Dockerfile
+        working-directory: . # Point to the directory with your Dockerfile
         run: |
           docker build \
             --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
