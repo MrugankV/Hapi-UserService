@@ -73,6 +73,7 @@ const init = async () => {
         // globalLimit: 1000, // Limit all users to 1000 requests
       },
     },
+
     // {
     //   plugin: Crumb,
     //   options: {
@@ -87,7 +88,11 @@ const init = async () => {
     //   },
     // },
   ]);
-
+  // Configure CORS
+  // server.settings.cors = {
+  //   origin: ["https://your-frontend.com"], // Adjust to your needs
+  //   credentials: true,
+  // };
   // Define JWT authentication strategy
   server.auth.strategy("jwt", "jwt", {
     key: process.env.JWT_SECRET,

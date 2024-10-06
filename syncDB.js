@@ -4,7 +4,7 @@ const UserDetail = require("./models/userDetail");
 
 const syncDatabase = async () => {
   try {
-    // await sequelize.sync({ force: true }); // Use force: true to drop and recreate tables
+    await sequelize.sync({ force: true }); // Use force: true to drop and recreate tables
     console.log("Database synced successfully.");
 
     // Optional: Create sample data for testing

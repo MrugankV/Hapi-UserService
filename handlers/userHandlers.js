@@ -4,12 +4,13 @@ const Joi = require("joi");
 const { sequelize, DataTypes } = require("../dbConfig");
 const { encryptdata } = require("../helpers/encrypt");
 
-const sendWelcomeEmail = require("../helpers/emailService");
+const { sendWelcomeEmail } = require("../helpers/emailService");
+const { generateToken } = require("../helpers/generateToken");
 const AuditLog = require("../models/auditLog");
 const User = require("../models/user");
 const UserDetail = require("../models/userDetail");
 const customJoi = require("../validations/customValidators"); // Import the custom Joi instance if you want to use it for different schemas
-const userSchema = require("../validations/validations"); // Import the user schema directly if you created it separately
+const { userSchema, loginSchema } = require("../validations/validations"); // Import the user schema directly if you created it separately
 
 const createUser = async (request, h) => {
   console.log(`Request Nody-${request}`);
@@ -38,9 +39,10 @@ const createUser = async (request, h) => {
       value;
     const saltRounds = 10;
     let base64_pass = Buffer.from(password, "base64").toString("utf-8");
+    // console.log("Decoded Password:", base64_pass);
     const passwordComplexity =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
-    if (!passwordComplexity.test(password)) {
+    if (!passwordComplexity.test(base64_pass)) {
       return h
         .response({
           message:
@@ -170,33 +172,107 @@ const createUser = async (request, h) => {
   }
 };
 
+// const loginUser = async (request, h) => {
+//   const { username, password } = request.payload;
+
+//   const user = users[username];
+//   if (!user) {
+//     return h.response({ error: "User not found" }).code(404);
+//   }
+
+//   const isValid = await bcrypt.compare(password, user.password);
+//   if (!isValid) {
+//     return h.response({ error: "Invalid credentials" }).code(401);
+//   }
+
+//   const token = jwt.sign({ username }, process.env.JWT_SECRET, {
+//     expiresIn: "1h",
+//   });
+//   return h.response({ message: "Login successful", token }).code(200);
+// };
+
+// const getUser = async (request, h) => {
+//   const { id } = request.params;
+
+//   const user = users[id];
+//   if (!user) {
+//     return h.response({ error: "User not found" }).code(404);
+//   }
+
+//   return h.response(user).code(200);
+// };
+
 const loginUser = async (request, h) => {
-  const { username, password } = request.payload;
+  // Find the user using Sequelize
+  try {
+    if (!request.payload) {
+      throw new Error("Missing payload");
+    }
+    const { email, password } = request.payload;
 
-  const user = users[username];
-  if (!user) {
-    return h.response({ error: "User not found" }).code(404);
+    const { error } = loginSchema.validate(request.payload);
+    if (error) {
+      return h
+        .response({
+          message: "Validation Error",
+          error: error.details[0].message,
+        })
+        .code(402); // Bad request
+    }
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return h.response({ error: "User not found" }).code(404);
+    }
+
+    // Check the password
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
+      return h.response({ error: "Invalid credentials" }).code(401);
+    }
+
+    // Generate the JWT token
+    const token = await generateToken(user);
+
+    return h.response({ message: "Login successful", token }).code(200);
+  } catch (error) {
+    console.log(error);
+    return h.response({ message: "Error", data: error.message }).code(400);
+  }
+};
+
+const getAllUsers = async (request, h) => {
+  // Check user role for access control
+  const { role } = request.auth.credentials;
+
+  if (role !== "admin") {
+    return h.response({ error: "Access denied" }).code(403);
   }
 
-  const isValid = await bcrypt.compare(password, user.password);
-  if (!isValid) {
-    return h.response({ error: "Invalid credentials" }).code(401);
-  }
+  // Retrieve all users from the database
+  const users = await User.findAll();
 
-  const token = jwt.sign({ username }, process.env.JWT_SECRET, {
-    expiresIn: "1h",
-  });
-  return h.response({ message: "Login successful", token }).code(200);
+  // Return all users
+  return h.response(users).code(200);
 };
 
 const getUser = async (request, h) => {
   const { id } = request.params;
 
-  const user = users[id];
+  // Check user role for access control
+  const { role } = request.auth.credentials;
+
+  // Admin can get any user, regular user can only get their own information
+  if (role === "user" && request.auth.credentials.userId !== parseInt(id, 10)) {
+    return h.response({ error: "Access denied" }).code(403);
+  }
+
+  // Find the user using Sequelize
+  const user = await User.findByPk(id); // Use findByPk to find by primary key
   if (!user) {
     return h.response({ error: "User not found" }).code(404);
   }
 
+  // Return user details (you may want to exclude sensitive info)
   return h.response(user).code(200);
 };
 
@@ -204,4 +280,5 @@ module.exports = {
   createUser,
   loginUser,
   getUser,
+  getAllUsers,
 };

@@ -41,4 +41,4 @@ const sendWelcomeEmail = async (email) => {
   }
 };
 
-module.exports = sendWelcomeEmail;
+module.exports = { sendWelcomeEmail };

@@ -1,6 +1,6 @@
 // schemas/userSchema.js
 const customJoi = require("../validations/customValidators");
-
+const Joi = require("joi");
 const userSchema = customJoi.object({
   firstName: customJoi.string().min(1).max(50).required(),
   lastName: customJoi.string().min(1).max(50).required(),
@@ -20,4 +20,24 @@ const userSchema = customJoi.object({
   role: customJoi.string().valid("admin", "user").required(),
 });
 
-module.exports = userSchema;
+const loginSchema = Joi.object({
+  email: Joi.string()
+    .email() // Validates that the input is a valid email address
+    .required() // This field is required
+    .messages({
+      "string.base": "Email must be a string",
+      "string.email": "Email must be a valid email address",
+      "any.required": "Email is required",
+    }),
+
+  password: Joi.string()
+    .min(8) // Minimum length of 8 characters
+    .required() // This field is required
+    .messages({
+      "string.base": "Password must be a string",
+      "string.min": "Password must be at least 8 characters long",
+      "any.required": "Password is required",
+    }),
+});
+
+module.exports = { userSchema, loginSchema };
