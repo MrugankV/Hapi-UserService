@@ -12,6 +12,8 @@ ARG DATABASE_PASSWORD
 ARG DATABASE_HOST
 ARG AesKey
 ARG IV
+ARG mailer_username
+ARG mailer_password
 
 # Set the environment variables for runtime
 ENV JWT_SECRET=$JWT_SECRET
