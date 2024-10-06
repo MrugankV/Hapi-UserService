@@ -40,12 +40,13 @@ const validateUserRoleAndScopes = (payload) => {
   console.log("hasrequired", hasRequiredScopes);
   return hasRequiredScopes; // Returns true if all required scopes are present
 };
+const HOST = "0.0.0.0";
 
 const init = async () => {
   // Create Hapi server with security headers
   const server = Hapi.server({
     port: process.env.PORT || 3000,
-    host: "localhost",
+    host: HOST,
     debug: { request: ["error"] },
     routes: {
       security: {
