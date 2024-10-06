@@ -143,7 +143,22 @@ jobs:
             sleep 1
           done
 
-      # Step 5: Set up environment variables
+      # Step 5: Wait for the node-app container to be healthy
+      - name: Wait for node-app to be healthy
+        run: |
+          until [ "$(docker inspect -f {{.State.Health.Status}} $(docker-compose ps -q node-app))" == "healthy" ]; do
+            echo "Waiting for node-app to be healthy..."
+            sleep 1
+          done
+          echo "node-app is healthy."
+
+      # Step 6: Check logs for errors in node-app
+      - name: Check node-app logs
+        run: |
+          echo "Checking logs for node-app..."
+          docker-compose logs node-app
+
+      # Step 7: Set up environment variables
       - name: Set up environment variables
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -158,7 +173,7 @@ jobs:
         run: |
           echo "Environment variables configured"
 
-      # Step 6: Run tests
+      # Step 8: Run tests
       - name: Run tests
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -173,16 +188,16 @@ jobs:
         run: |
           docker-compose exec node-app npm test
 
-      # Step 7: Tear down Docker Compose
+      # Step 9: Tear down Docker Compose
       - name: Tear down Docker
         run: |
           docker-compose down
 
-      # Step 8: Log in to Docker Hub
+      # Step 10: Log in to Docker Hub
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      # Step 9: Build Docker image with build arguments
+      # Step 11: Build Docker image with build arguments
       - name: Build Docker image
         working-directory: ./node-app # Point to the directory with your Dockerfile
         run: |
@@ -196,7 +211,7 @@ jobs:
             --build-arg IV=${{ secrets.IV }} \
             -t noobslayer0069/node-service001:latest .
 
-      # Step 10: Push Docker image to Docker Hub
+      # Step 12: Push Docker image to Docker Hub
       - name: Push Docker image
         run: docker push noobslayer0069/node-service001:latest
 
