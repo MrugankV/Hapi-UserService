@@ -118,19 +118,19 @@ jobs:
           echo "AesKey=${{ secrets.AesKey }}"
           echo "IV=${{ secrets.IV }}"
 
-      # - name: Set Heroku config variables
-      #   run: |
-      #     heroku config:set JWT_SECRET="${{ secrets.JWT_SECRET }}" --app node-service-01
-      #     heroku config:set DATABASE_NAME="${{ secrets.DATABASE_NAME }}" --app node-service-01
-      #     heroku config:set DATABASE_USER=${{ secrets.DATABASE_USER }} --app node-service-01
-      #     heroku config:set DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} --app node-service-01
-      #     heroku config:set DATABASE_HOST=${{ secrets.DATABASE_HOST }} --app node-service-01
-      #     heroku config:set AesKey=${{ secrets.AesKey }} --app node-service-01
-      #     heroku config:set IV=${{ secrets.IV }} --app node-service-01
-      #     heroku config:set MAILER_PASSWORD="${{ secrets.MAILER_PASSWORD }}" --app node-service-01
-      #     heroku config:set MAILER_USERNAME="${{ secrets.MAILER_USERNAME }}" --app node-service-01
-      #   env:
-      #     HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      - name: Set Heroku config variables
+        run: |
+          heroku config:set JWT_SECRET="${{ secrets.JWT_SECRET }}" --app node-service-01
+          heroku config:set DATABASE_NAME="${{ secrets.DATABASE_NAME }}" --app node-service-01
+          heroku config:set DATABASE_USER="${{ secrets.DATABASE_USER }}" --app node-service-01
+          heroku config:set DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}" --app node-service-01
+          heroku config:set DATABASE_HOST="${{ secrets.DATABASE_HOST }}" --app node-service-01
+          heroku config:set AesKey="${{ secrets.AesKey }}" --app node-service-01
+          heroku config:set IV="${{ secrets.IV }}" --app node-service-01
+          heroku config:set MAILER_PASSWORD="${{ secrets.MAILER_PASSWORD }}" --app node-service-01
+          heroku config:set MAILER_USERNAME="${{ secrets.MAILER_USERNAME }}" --app node-service-01
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
 
       # Step 2: Deploy to Heroku using Docker container
       - name: Deploy to Heroku
