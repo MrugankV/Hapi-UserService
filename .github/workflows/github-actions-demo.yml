@@ -1,3 +1,98 @@
+# name: CI/CD Pipeline
+
+# on:
+#   push:
+#     branches:
+#       - main # Run the pipeline on every push to the main branch
+#   pull_request:
+#     branches:
+#       - main
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       # Step 1: Checkout the repository code
+#       - name: Checkout repository
+#         uses: actions/checkout@v2
+
+#       # Step 2: Set up Node.js environment
+#       - name: Set up Node.js
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: "20.14.0"
+
+#       # Step 3: Install npm dependencies
+#       - name: Install dependencies
+#         run: npm install
+
+#       # Step 4: Set up environment variables
+#       - name: Set up environment variables
+#         env:
+#           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+#           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+#           DATABASE_USER: ${{ secrets.DATABASE_USER }}
+#           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+#           DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+#           AesKey: ${{ secrets.AesKey }}
+#           IV: ${{ secrets.IV }}
+#         run: |
+#           echo "Environment variables configured"
+
+#       # Step 5: Run tests
+#       - name: Run tests
+#         env:
+#           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+#           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+#           DATABASE_USER: ${{ secrets.DATABASE_USER }}
+#           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+#           DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+#           AesKey: ${{ secrets.AesKey }}
+#           IV: ${{ secrets.IV }}
+#         run: npm test
+
+#       # Step 6: Build Docker image with build arguments
+#       - name: Build Docker image
+#         working-directory: .
+#         run: |
+#           docker build \
+#             --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
+#             --build-arg DATABASE_NAME=${{ secrets.DATABASE_NAME }} \
+#             --build-arg DATABASE_USER=${{ secrets.DATABASE_USER }} \
+#             --build-arg DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} \
+#             --build-arg DATABASE_HOST=${{ secrets.DATABASE_HOST }} \
+#             --build-arg AesKey=${{ secrets.AesKey }} \
+#             --build-arg IV=${{ secrets.IV }} \
+#             -t noobslayer0069/node-service001:latest .
+
+#       # Step 7: Log in to Docker Hub
+#       - name: Log in to Docker Hub
+#         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+#       # Step 8: Push Docker image to Docker Hub
+#       - name: Push Docker image
+#         run: docker push noobslayer0069/node-service001:latest
+
+#   deploy:
+#     needs: build
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       # Step 1: Checkout the repository code again in deploy job
+#       - name: Checkout repository
+#         uses: actions/checkout@v2
+
+#       # Step 2: Deploy to Heroku using Docker container
+#       - name: Deploy to Heroku
+#         env:
+#           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+#         run: |
+#           heroku stack:set container --app node-service-01
+#           heroku container:login
+#           heroku container:push web --app node-service-01
+#           heroku container:release web --app node-service-01
+
 name: CI/CD Pipeline
 
 on:
@@ -23,9 +118,14 @@ jobs:
         with:
           node-version: "20.14.0"
 
-      # Step 3: Install npm dependencies
-      - name: Install dependencies
-        run: npm install
+      # Step 3: Build and run Docker containers
+      - name: Build and run Docker containers
+        run: |
+          docker-compose up -d --build
+          # Wait for MySQL to be ready
+          while ! docker exec $(docker-compose ps -q db) mysqladmin --user=${{ secrets.DATABASE_USER }} --password=${{ secrets.DATABASE_PASSWORD }} ping --silent; do
+            sleep 1
+          done
 
       # Step 4: Set up environment variables
       - name: Set up environment variables
@@ -34,8 +134,10 @@ jobs:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
           DATABASE_USER: ${{ secrets.DATABASE_USER }}
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_HOST: db
           AesKey: ${{ secrets.AesKey }}
+          mailer_username: ${{ secrets.mailer_username }}
+          mailer_password: ${{ secrets.mailer_password }}
           IV: ${{ secrets.IV }}
         run: |
           echo "Environment variables configured"
@@ -47,30 +149,38 @@ jobs:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
           DATABASE_USER: ${{ secrets.DATABASE_USER }}
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_HOST: db
           AesKey: ${{ secrets.AesKey }}
+          mailer_username: ${{ secrets.mailer_username }}
+          mailer_password: ${{ secrets.mailer_password }}
           IV: ${{ secrets.IV }}
-        run: npm test
+        run: |
+          docker-compose exec node-app npm test
 
-      # Step 6: Build Docker image with build arguments
+      # Step 6: Tear down Docker Compose
+      - name: Tear down Docker
+        run: |
+          docker-compose down
+
+      # Step 7: Log in to Docker Hub
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      # Step 8: Build Docker image with build arguments
       - name: Build Docker image
-        working-directory: .
+        working-directory: ./node-app # Point to the directory with your Dockerfile
         run: |
           docker build \
             --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
             --build-arg DATABASE_NAME=${{ secrets.DATABASE_NAME }} \
             --build-arg DATABASE_USER=${{ secrets.DATABASE_USER }} \
             --build-arg DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} \
-            --build-arg DATABASE_HOST=${{ secrets.DATABASE_HOST }} \
+            --build-arg DATABASE_HOST=db \
             --build-arg AesKey=${{ secrets.AesKey }} \
             --build-arg IV=${{ secrets.IV }} \
             -t noobslayer0069/node-service001:latest .
 
-      # Step 7: Log in to Docker Hub
-      - name: Log in to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-      # Step 8: Push Docker image to Docker Hub
+      # Step 9: Push Docker image to Docker Hub
       - name: Push Docker image
         run: docker push noobslayer0069/node-service001:latest
 

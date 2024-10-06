@@ -6,6 +6,7 @@ const generateToken = () => {
   const expiresIn = 14400; // Token validity period in seconds (e.g., 1 hour)
   const token = Jwt.token.generate(
     {
+      userId: 1,
       email: "bk123@gmail.com",
       role: "admin",
       scopes: ["create:user"], // Include required scopes

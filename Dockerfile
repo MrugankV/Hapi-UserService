@@ -21,7 +21,8 @@ ENV DATABASE_PASSWORD=$DATABASE_PASSWORD
 ENV DATABASE_HOST=$DATABASE_HOST
 ENV AesKey=$AesKey
 ENV IV=$IV
-
+ENV mailer_username=$mailer_username
+ENV mailer_password=$mailer_password
 # Set the working directory inside the container
 WORKDIR /app
 
@@ -38,4 +39,4 @@ COPY . .
 EXPOSE 3000
 
 # Define the command to run your application
-CMD ["npm", "start"]
+CMD ["node", "syncDB.js", "&&","node", "syncDB2.js", "&&","npm", "start"]

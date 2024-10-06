@@ -1,0 +1,33 @@
+version: "3.8"
+services:
+  node-app:
+    build:
+      context: . # The current directory (where docker-compose.yml is located)
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_HOST=db
+      - AesKey=${AesKey}
+      - mailer_username=${mailer_username}
+      - mailer_password=${mailer_password}
+
+  db:
+    image: mysql:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DATABASE_PASSWORD}
+      - MYSQL_DATABASE=${DATABASE_NAME}
+      - MYSQL_USER=${DATABASE_USER}
+      - MYSQL_PASSWORD=${DATABASE_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
