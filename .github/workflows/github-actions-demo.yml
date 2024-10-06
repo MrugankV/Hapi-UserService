@@ -126,6 +126,16 @@ jobs:
 
       # Step 4: Build and run Docker containers
       - name: Build and run Docker containers
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_HOST: db
+          AesKey: ${{ secrets.AesKey }}
+          mailer_username: ${{ secrets.mailer_username }}
+          mailer_password: ${{ secrets.mailer_password }}
+          IV: ${{ secrets.IV }}
         run: |
           docker-compose up -d --build
           # Wait for MySQL to be ready
