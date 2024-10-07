@@ -121,13 +121,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # Step 2: Run OWASP ZAP Baseline Scan using the Heroku URL
-      - name: OWASP ZAP Scan
+      # Step 2: Run OWASP ZAP API Scan
+      - name: OWASP ZAP API Scan
         run: |
-          docker run --user root -v $(pwd):/zap/wrk/:rw -t zaproxy/zap-stable zap-baseline.py \
-          -t https://node-service-01-5cf74435878c.herokuapp.com -r zap_report.html
+          # Start the ZAP daemon
+          docker run --user root -d -p 8080:8080 --name zap zaproxy/zap-stable zap.sh -daemon -port 8080
 
-      # Step 3: Upload the ZAP report as an artifact
+          # Wait for ZAP to start up
+          sleep 30
+
+          # Define the target URL and payload
+          TARGET_URL="https://node-service-01-5cf74435878c.herokuapp.com/login"
+          PAYLOAD='{ "email": "mrudulavora311195@gmail.com", "password": "Mrugank@123" }'
+
+          # Use ZAP API to send the payload
+          docker exec -it zap zap-cli --zap-url http://localhost:8080 --api-key YOUR_ZAP_API_KEY request --method POST --url "${TARGET_URL}" --data "${PAYLOAD}"
+
+          # Stop ZAP after the scan
+          docker stop zap
+
+      # Step 3: Upload the ZAP report as an artifact (optional, if you generate a report)
+      # This can be omitted if you do not want to upload a report for this specific scan
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
