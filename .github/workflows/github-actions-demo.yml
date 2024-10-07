@@ -128,7 +128,7 @@ jobs:
           docker run --user root -d -p 8080:8080 --name zap zaproxy/zap-stable zap.sh -daemon -port 8080
 
           # Wait for ZAP to start up
-          sleep 30
+          sleep 120
 
           # Define the target URL
           TARGET_URL="https://node-service-01-5cf74435878c.herokuapp.com/login"
