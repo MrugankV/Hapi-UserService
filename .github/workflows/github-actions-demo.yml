@@ -94,18 +94,23 @@ jobs:
         with:
           node-version: "20.14.0"
 
-      # Step 3: Start the application (example for Node.js application)
+      # Step 3: Start the application
       - name: Start application
         run: |
           npm install
+          export PORT=5000
           npm start &
-          sleep 15 # Allow some time for the server to start
+          sleep 25 # Allow some time for the server to start
 
-      # Step 4: Run OWASP ZAP Baseline Scan
+      # Step 4: Run OWASP ZAP Baseline Scan with updated configuration
       - name: OWASP ZAP Scan
         run: |
-          docker run -v $(pwd):/zap/wrk/:rw -t zaproxy/zap-stable zap-baseline.py \
-          -t http://localhost:3000 -r zap_report.html
+          # Set permissions to avoid permission denied errors
+          chmod -R 777 $(pwd)
+
+          # Run ZAP scan against host.docker.internal or the Docker network
+          docker run --user root -v $(pwd):/zap/wrk/:rw -t zaproxy/zap-stable zap-baseline.py \
+          -t http://host.docker.internal:3000 -r zap_report.html
 
       # Step 5: Upload the ZAP report as an artifact
       - name: Upload ZAP Report
