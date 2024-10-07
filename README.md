@@ -263,7 +263,7 @@ heroku logs --tail --app your-app-name
 ```
 * Postman Collection is provided for testing purpose
 * Included docker-compose.yml which includes mysql db image ref for testing the application locally. Build using ```docker-compose up -d --build``` command
-* ZAP proxy security scan for Active and Sql Injection scans have been shared for reference.
+* ZAP proxy security scan for Active and Sql Injection scan results have been shared for reference.
 * Github Actions workflow attached for reference
 
 
