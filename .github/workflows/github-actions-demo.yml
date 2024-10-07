@@ -117,7 +117,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Check out the code
+      # Step 1: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v2
 
@@ -128,24 +128,32 @@ jobs:
           docker run --user root -d -p 8080:8080 --name zap zaproxy/zap-stable zap.sh -daemon -port 8080
 
           # Wait for ZAP to start up
+          echo "Waiting for ZAP to initialize..."
           sleep 120
 
-          # Define the target URL
+          # Define the target URL and payload
           TARGET_URL="https://node-service-01-5cf74435878c.herokuapp.com/login"
           PAYLOAD='{ "email": "mrudulavora311195@gmail.com", "password": "Mrugank@123" }'
 
           # Set up the ZAP API Key if required, else leave it empty
           API_KEY=""
 
-          # Use curl to send the login payload to ZAP API
-          curl --max-time 60 -X POST "http://localhost:8080/JSON/core/action/scan/" \
+          # Check if ZAP is responding
+          echo "Checking ZAP status..."
+          curl --max-time 60 -X GET "http://localhost:8080/JSON/core/view/version/" || { echo "ZAP is not reachable"; exit 1; }
+
+          # Start the scan
+          echo "Starting ZAP scan on ${TARGET_URL}..."
+          RESPONSE=$(curl --max-time 120 -X POST "http://localhost:8080/JSON/spider/action/scan/" \
             --data-urlencode "url=${TARGET_URL}" \
-            --data-urlencode "apikey=${API_KEY}" \
-            --data-urlencode "input=${PAYLOAD}"
+            --data-urlencode "apikey=${API_KEY}")
+
+          echo "ZAP scan initiated. Response: ${RESPONSE}"
 
           # Optionally, you can wait for the scan to complete or fetch the report here
 
           # Stop ZAP after the scan
+          echo "Stopping ZAP..."
           docker stop zap
 
 # name: CI/CD Pipeline
