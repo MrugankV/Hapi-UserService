@@ -135,7 +135,7 @@ jobs:
           PAYLOAD='{ "email": "mrudulavora311195@gmail.com", "password": "Mrugank@123" }'
 
           # Use ZAP API to send the payload
-          docker exec -it zap zap-cli --zap-url http://localhost:8080 --api-key YOUR_ZAP_API_KEY request --method POST --url "${TARGET_URL}" --data "${PAYLOAD}"
+          docker exec -t zap zap-cli --zap-url http://localhost:8080 request --method POST --url "${TARGET_URL}" --data "${PAYLOAD}"
 
           # Stop ZAP after the scan
           docker stop zap
