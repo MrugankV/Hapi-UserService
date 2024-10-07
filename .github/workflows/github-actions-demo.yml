@@ -138,7 +138,7 @@ jobs:
           API_KEY=""
 
           # Use curl to send the login payload to ZAP API
-          curl -X POST "http://localhost:8080/JSON/core/action/scan/" \
+          curl --max-time 60 -X POST "http://localhost:8080/JSON/core/action/scan/" \
             --data-urlencode "url=${TARGET_URL}" \
             --data-urlencode "apikey=${API_KEY}" \
             --data-urlencode "input=${PAYLOAD}"
