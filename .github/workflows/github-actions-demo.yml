@@ -130,23 +130,24 @@ jobs:
           # Wait for ZAP to start up
           sleep 30
 
-          # Define the target URL and payload
+          # Define the target URL
           TARGET_URL="https://node-service-01-5cf74435878c.herokuapp.com/login"
           PAYLOAD='{ "email": "mrudulavora311195@gmail.com", "password": "Mrugank@123" }'
 
-          # Use ZAP API to send the payload
-          docker exec -t zap zap-cli --zap-url http://localhost:8080 request --method POST --url "${TARGET_URL}" --data "${PAYLOAD}"
+          # Set up the ZAP API Key if required, else leave it empty
+          API_KEY=""
+
+          # Use curl to send the login payload to ZAP API
+          curl -X POST "http://localhost:8080/JSON/core/action/scan/" \
+            --data-urlencode "url=${TARGET_URL}" \
+            --data-urlencode "apikey=${API_KEY}" \
+            --data-urlencode "input=${PAYLOAD}"
+
+          # Optionally, you can wait for the scan to complete or fetch the report here
 
           # Stop ZAP after the scan
           docker stop zap
 
-      # Step 3: Upload the ZAP report as an artifact (optional, if you generate a report)
-      # This can be omitted if you do not want to upload a report for this specific scan
-      - name: Upload ZAP Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-report
-          path: zap_report.html
 # name: CI/CD Pipeline
 
 # on:
